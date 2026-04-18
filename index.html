@@ -28,9 +28,8 @@
     <div id="editorContainer">
       <h2>Arrange your images</h2>
       <div style="width: min(32rem, 100%)">
-         <canvas id="canvas" width="400" height="400" style="border: 1px solid #000000; max-width: 100%"></canvas>
+        <canvas id="canvas" width="400" height="400" style="border: 1px solid #000000; max-width: 100%"></canvas>
       </div>
-     
 
       <div>
         <h3>Choose a layout</h3>
@@ -62,20 +61,22 @@
     </div>
     <script src="./dist/build.js?load=1"></script>
     <script>
+      const editor = window.CollageEditor(document.getElementById("canvas"));
+
       const addOrRemoveImageFromEditor = (evt) => {
         const imageId = evt.currentTarget.querySelector("img").getAttribute("data-image-id");
 
         //check if button has css class "image-active" to determine if image is already in editor
-        const imageInEditor = window.editor.getImages().find((img) => img.id === imageId);
+        const imageInEditor = editor.getImages().find((img) => img.id === imageId);
 
         if (imageInEditor) {
-          window.editor.removeImage(imageInEditor.id);
+          editor.removeImage(imageInEditor.id);
           filterLayoutButtons();
           evt.currentTarget.classList.remove("image-active");
         } else {
           const image = new Image();
           image.onload = function () {
-            window.editor.loadImages([{ src: image.src, id: imageId }]).then(() => {
+            editor.loadImages([{ src: image.src, id: imageId }]).then(() => {
               filterLayoutButtons();
             });
           };
@@ -110,7 +111,7 @@
             });
 
             if (imageSources.length === event.target.files.length) {
-              window.editor.loadImages(imageSources).then(() => {
+              editor.loadImages(imageSources).then(() => {
                 filterLayoutButtons();
               });
             }
@@ -121,7 +122,7 @@
 
       const filterLayoutButtons = () => {
         const layoutButtons = document.querySelectorAll("button[data-layout-btn]");
-        const imagesCount = window.editor.getImages().length;
+        const imagesCount = editor.getImages().length;
 
         layoutButtons.forEach((btn) => {
           const requiredCount = parseInt(btn.getAttribute("data-count-images") || "0", 10);
@@ -138,8 +139,8 @@
           const layoutId = btn.getAttribute("data-layout-btn");
           if (!layoutId) {
             throw new Error("Layout ID not found on button");
-            }
-            window.editor.selectLayout(layoutId);
+          }
+          editor.selectLayout(layoutId);
         });
       });
 

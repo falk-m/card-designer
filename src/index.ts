@@ -7,10 +7,10 @@ import { initScaleHandler } from "./functions/initScaleHandler";
 import { createExportImageFileFunction } from "./functions/createExportImageFileFunction";
 import { createInitFunction } from "./functions/createInitFunction";
 
-const editor = (layout: Layout[]) => {
+const editor = (layout: Layout[], canvas: HTMLCanvasElement) => {
   const editorContext: EditorContext = {
-    canvas: document.getElementById("canvas") as HTMLCanvasElement,
-    ctx: (document.getElementById("canvas") as HTMLCanvasElement).getContext("2d") as CanvasRenderingContext2D,
+    canvas: canvas,
+    ctx: canvas.getContext("2d") as CanvasRenderingContext2D,
     layout: layout[0],
     images: [],
     withCuttingFrame: true,
@@ -56,4 +56,4 @@ const editor = (layout: Layout[]) => {
   };
 };
 
-(window as any).editor = editor(layouts);
+(window as any).CollageEditor = (canvas: HTMLCanvasElement) => editor(layouts, canvas);

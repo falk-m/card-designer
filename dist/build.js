@@ -427,10 +427,10 @@
   };
 
   // src/index.ts
-  var editor = (layout) => {
+  var editor = (layout, canvas) => {
     const editorContext = {
-      canvas: document.getElementById("canvas"),
-      ctx: document.getElementById("canvas").getContext("2d"),
+      canvas,
+      ctx: canvas.getContext("2d"),
       layout: layout[0],
       images: [],
       withCuttingFrame: true,
@@ -468,5 +468,5 @@
       getLayout: () => editorContext.layout
     };
   };
-  window.editor = editor(layouts);
+  window.CollageEditor = (canvas) => editor(layouts, canvas);
 })();

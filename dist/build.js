@@ -12,7 +12,16 @@
         }
         editorContext.ctx.drawImage(editorImage.image, imgPos.x, imgPos.y, imgPos.width, imgPos.height, pos.x, pos.y, pos.width, pos.height);
       });
-      requestAnimationFrame(draw);
+      if (editorContext.withCuttingFrame) {
+        editorContext.ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        editorContext.ctx.fillRect(0, 0, editorContext.layout.dimensions.width, editorContext.layout.dimensions.cuttingFrame);
+        editorContext.ctx.fillRect(0, editorContext.layout.dimensions.height - editorContext.layout.dimensions.cuttingFrame, editorContext.layout.dimensions.width, editorContext.layout.dimensions.cuttingFrame);
+        editorContext.ctx.fillRect(0, 0, editorContext.layout.dimensions.cuttingFrame, editorContext.layout.dimensions.height);
+        editorContext.ctx.fillRect(editorContext.layout.dimensions.width - editorContext.layout.dimensions.cuttingFrame, 0, editorContext.layout.dimensions.cuttingFrame, editorContext.layout.dimensions.height);
+      }
+      if (editorContext.loopDraw) {
+        requestAnimationFrame(draw);
+      }
     };
     return draw;
   }
@@ -76,12 +85,10 @@
       if (!clickEvent.selectedImage) {
         clickEvent.isClicked = false;
       }
-      console.log("clickstart", x, y);
     };
     const endClickHandler = (x, y) => {
       clickEvent.isClicked = false;
       clickEvent.selectedImage = null;
-      console.log("clickend", x, y);
     };
     const moveClickHandler = (x, y) => {
       if (!clickEvent.isClicked || !clickEvent.selectedImage || !clickEvent.selectedImage.layoutPosition || !clickEvent.selectedImage.imagePosition) {
@@ -90,7 +97,7 @@
       const offsetX = x - clickEvent.startX;
       const offsetY = y - clickEvent.startY;
       const imagePosition = clickEvent.selectedImage.imagePosition;
-      const factor = clickEvent.selectedImage.image.naturalWidth / clickEvent.selectedImage.layoutPosition.width;
+      const factor = imagePosition.width / clickEvent.selectedImage.layoutPosition.width;
       imagePosition.y = clickEvent.startImageY - offsetY * factor;
       imagePosition.x = clickEvent.startImageX - offsetX * factor;
       if (imagePosition.y < 0) {
@@ -99,16 +106,18 @@
       if (imagePosition.x < 0) {
         imagePosition.x = 0;
       }
-      if (clickEvent.selectedImage.image.naturalWidth - imagePosition.width - imagePosition.x < 0) {
-        imagePosition.x = clickEvent.selectedImage.image.naturalWidth - imagePosition.width;
+      if (clickEvent.selectedImage.naturalWidth - imagePosition.width - imagePosition.x < 0) {
+        imagePosition.x = clickEvent.selectedImage.naturalWidth - imagePosition.width;
       }
-      if (clickEvent.selectedImage.image.naturalHeight - imagePosition.height - imagePosition.y < 0) {
-        imagePosition.y = clickEvent.selectedImage.image.naturalHeight - imagePosition.height;
+      if (clickEvent.selectedImage.naturalHeight - imagePosition.height - imagePosition.y < 0) {
+        imagePosition.y = clickEvent.selectedImage.naturalHeight - imagePosition.height;
       }
-      console.log("clickmove", x, y, offsetX, offsetY);
     };
     const canvas = editorContext.canvas;
     canvas.addEventListener("mousemove", (e) => {
+      if (!clickEvent.isClicked) {
+        return;
+      }
       const rect = canvas.getBoundingClientRect();
       const canvasScaleFacor = editorContext.canvas.offsetWidth / editorContext.canvas.width;
       const x = (e.clientX - rect.left) / canvasScaleFacor;
@@ -165,8 +174,10 @@
   }
 
   // src/layouts.ts
-  var portraitDimaensions = { width: 600, height: 800 };
-  var landscapeDimaensions = { width: 800, height: 600 };
+  var longSide = 1748;
+  var shortSide = 1240;
+  var portraitDimaensions = { width: shortSide, height: longSide, cuttingFrame: 35 };
+  var landscapeDimaensions = { width: longSide, height: shortSide, cuttingFrame: 35 };
   var layouts = [
     {
       id: "portrait1",
@@ -174,7 +185,7 @@
       maxImages: 1,
       dimensions: portraitDimaensions,
       positions: [
-        { x: 0, y: 0, width: 600, height: 800 }
+        { x: 0, y: 0, width: shortSide, height: longSide }
       ]
     },
     {
@@ -183,8 +194,8 @@
       maxImages: 2,
       dimensions: portraitDimaensions,
       positions: [
-        { x: 0, y: 0, width: 600, height: 400 },
-        { x: 0, y: 400, width: 600, height: 400 }
+        { x: 0, y: 0, width: shortSide, height: longSide / 2 },
+        { x: 0, y: longSide / 2, width: shortSide, height: longSide / 2 }
       ]
     },
     {
@@ -193,9 +204,9 @@
       maxImages: 3,
       dimensions: portraitDimaensions,
       positions: [
-        { x: 0, y: 0, width: 300, height: 400 },
-        { x: 300, y: 0, width: 300, height: 400 },
-        { x: 0, y: 400, width: 600, height: 400 }
+        { x: 0, y: 0, width: shortSide / 2, height: longSide / 2 },
+        { x: shortSide / 2, y: 0, width: shortSide / 2, height: longSide / 2 },
+        { x: 0, y: longSide / 2, width: shortSide, height: longSide / 2 }
       ]
     },
     {
@@ -204,10 +215,10 @@
       maxImages: 4,
       dimensions: portraitDimaensions,
       positions: [
-        { x: 0, y: 0, width: 300, height: 400 },
-        { x: 300, y: 0, width: 300, height: 400 },
-        { x: 0, y: 400, width: 300, height: 400 },
-        { x: 300, y: 400, width: 300, height: 400 }
+        { x: 0, y: 0, width: shortSide / 2, height: longSide / 2 },
+        { x: shortSide / 2, y: 0, width: shortSide / 2, height: longSide / 2 },
+        { x: 0, y: longSide / 2, width: shortSide / 2, height: longSide / 2 },
+        { x: shortSide / 2, y: longSide / 2, width: shortSide / 2, height: longSide / 2 }
       ]
     },
     {
@@ -216,7 +227,7 @@
       maxImages: 1,
       dimensions: landscapeDimaensions,
       positions: [
-        { x: 0, y: 0, width: 800, height: 600 }
+        { x: 0, y: 0, width: longSide, height: shortSide }
       ]
     },
     {
@@ -225,8 +236,8 @@
       maxImages: 2,
       dimensions: landscapeDimaensions,
       positions: [
-        { x: 0, y: 0, width: 400, height: 600 },
-        { x: 400, y: 0, width: 400, height: 600 }
+        { x: 0, y: 0, width: longSide / 2, height: shortSide },
+        { x: longSide / 2, y: 0, width: longSide / 2, height: shortSide }
       ]
     },
     {
@@ -235,9 +246,9 @@
       maxImages: 3,
       dimensions: landscapeDimaensions,
       positions: [
-        { x: 0, y: 0, width: 400, height: 300 },
-        { x: 0, y: 300, width: 400, height: 300 },
-        { x: 400, y: 0, width: 400, height: 600 }
+        { x: 0, y: 0, width: longSide / 2, height: shortSide / 2 },
+        { x: 0, y: shortSide / 2, width: longSide / 2, height: shortSide / 2 },
+        { x: longSide / 2, y: 0, width: longSide / 2, height: shortSide }
       ]
     },
     {
@@ -246,10 +257,10 @@
       maxImages: 4,
       dimensions: landscapeDimaensions,
       positions: [
-        { x: 0, y: 0, width: 400, height: 300 },
-        { x: 0, y: 300, width: 400, height: 300 },
-        { x: 400, y: 0, width: 400, height: 300 },
-        { x: 400, y: 300, width: 400, height: 300 }
+        { x: 0, y: 0, width: longSide / 2, height: shortSide / 2 },
+        { x: 0, y: shortSide / 2, width: longSide / 2, height: shortSide / 2 },
+        { x: longSide / 2, y: 0, width: longSide / 2, height: shortSide / 2 },
+        { x: longSide / 2, y: shortSide / 2, width: longSide / 2, height: shortSide / 2 }
       ]
     }
   ];
@@ -421,7 +432,9 @@
       canvas: document.getElementById("canvas"),
       ctx: document.getElementById("canvas").getContext("2d"),
       layout: layout[0],
-      images: []
+      images: [],
+      withCuttingFrame: true,
+      loopDraw: true
     };
     initTouchHandler(editorContext);
     initScaleHandler(editorContext);

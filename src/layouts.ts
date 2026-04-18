@@ -1,7 +1,8 @@
 import { Layout } from "./types";
-
-const portraitDimaensions = { width: 600, height: 800 };
-const landscapeDimaensions = { width: 800, height: 600 };
+const longSide = 1748;
+const shortSide = 1240;
+const portraitDimaensions = { width: shortSide, height: longSide, cuttingFrame: 35 };
+const landscapeDimaensions = { width: longSide, height: shortSide, cuttingFrame: 35 };
 
 export const layouts : Layout[] = [
     {
@@ -10,7 +11,7 @@ export const layouts : Layout[] = [
         maxImages: 1,
         dimensions: portraitDimaensions,
         positions: [
-            { x: 0, y: 0, width: 600, height: 800 }
+            { x: 0, y: 0, width: shortSide, height: longSide }
         ]
     },
     {
@@ -19,8 +20,8 @@ export const layouts : Layout[] = [
         maxImages: 2,
         dimensions: portraitDimaensions,
         positions: [
-            { x: 0, y: 0, width: 600, height: 400 },
-            { x: 0, y: 400, width: 600, height: 400 }
+            { x: 0, y: 0, width: shortSide, height: longSide / 2 },
+            { x: 0, y: longSide / 2, width: shortSide, height: longSide / 2 }
         ]
     },
     {
@@ -29,9 +30,9 @@ export const layouts : Layout[] = [
         maxImages: 3,
         dimensions: portraitDimaensions,
         positions: [
-            { x: 0, y: 0, width: 300, height: 400 },
-            { x: 300, y: 0, width: 300, height: 400 },
-            { x: 0, y: 400, width: 600, height: 400 }
+            { x: 0, y: 0, width: shortSide / 2, height: longSide / 2 },
+            { x: shortSide / 2, y: 0, width: shortSide / 2, height: longSide / 2 },
+            { x: 0, y: longSide / 2, width: shortSide, height: longSide / 2 }
         ]
     },
     {
@@ -40,10 +41,10 @@ export const layouts : Layout[] = [
         maxImages: 4,
         dimensions: portraitDimaensions,
         positions: [
-            { x: 0, y: 0, width: 300, height: 400 },
-            { x: 300, y: 0, width: 300, height: 400 },
-            { x: 0, y: 400, width: 300, height: 400 },
-            { x: 300, y: 400, width: 300, height: 400 },
+            { x: 0, y: 0, width: shortSide / 2, height: longSide / 2 },
+            { x: shortSide / 2, y: 0, width: shortSide / 2, height: longSide / 2 },
+            { x: 0, y: longSide / 2, width: shortSide / 2, height: longSide / 2 },
+            { x: shortSide / 2, y: longSide / 2, width: shortSide / 2, height: longSide / 2 },
         ]
     },
     {
@@ -52,7 +53,7 @@ export const layouts : Layout[] = [
         maxImages: 1,
         dimensions: landscapeDimaensions,
         positions: [
-            { x: 0, y: 0, width: 800, height: 600 }
+            { x: 0, y: 0, width: longSide, height: shortSide }
         ]
     },
     {
@@ -61,8 +62,8 @@ export const layouts : Layout[] = [
         maxImages: 2,
         dimensions: landscapeDimaensions,
         positions: [
-            { x: 0, y: 0, width: 400, height: 600 },
-            { x: 400, y: 0, width: 400, height: 600 }
+            { x: 0, y: 0, width: longSide / 2, height: shortSide },
+            { x: longSide / 2, y: 0, width: longSide / 2, height: shortSide }
         ]
     },
     {
@@ -71,9 +72,9 @@ export const layouts : Layout[] = [
         maxImages: 3,
         dimensions: landscapeDimaensions,
         positions: [
-            { x: 0, y: 0, width: 400, height: 300 },
-            { x: 0, y: 300, width: 400, height: 300 },
-            { x: 400, y: 0, width: 400, height: 600 }
+            { x: 0, y: 0, width: longSide / 2, height: shortSide / 2 },
+            { x: 0, y: shortSide / 2, width: longSide / 2, height: shortSide / 2 },
+            { x: longSide / 2, y: 0, width: longSide / 2, height: shortSide }
         ]
     },
     {
@@ -82,10 +83,10 @@ export const layouts : Layout[] = [
         maxImages: 4,
         dimensions: landscapeDimaensions,
         positions: [
-            { x: 0, y: 0, width: 400, height: 300 },
-            { x: 0, y: 300, width: 400, height: 300 },
-            { x: 400, y: 0, width: 400, height: 300 },
-            { x: 400, y: 300, width: 400, height: 300 },
+            { x: 0, y: 0, width: longSide / 2, height: shortSide / 2 },
+            { x: 0, y: shortSide / 2, width: longSide / 2, height: shortSide / 2 },
+            { x: longSide / 2, y: 0, width: longSide / 2, height: shortSide / 2 },
+            { x: longSide / 2, y: shortSide / 2, width: longSide / 2, height: shortSide / 2 },
         ]
     },
 ];

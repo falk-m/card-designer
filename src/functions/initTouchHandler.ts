@@ -43,14 +43,14 @@ export default function initTouchHandler(editorContext: EditorContext) {
       clickEvent.isClicked = false;
     }
 
-    console.log("clickstart", x, y);
+    //console.log("clickstart", x, y);
   };
 
   const endClickHandler = (x: number, y: number) => {
     clickEvent.isClicked = false;
     clickEvent.selectedImage = null;
 
-    console.log("clickend", x, y);
+    //console.log("clickend", x, y);
   };
 
   const moveClickHandler = (x: number, y: number) => {
@@ -62,7 +62,7 @@ export default function initTouchHandler(editorContext: EditorContext) {
     const offsetY = y - clickEvent.startY;
     const imagePosition = clickEvent.selectedImage.imagePosition;
 
-    const factor = clickEvent.selectedImage.image.naturalWidth / clickEvent.selectedImage.layoutPosition.width;
+    const factor = imagePosition.width / clickEvent.selectedImage.layoutPosition.width;
 
     imagePosition.y = clickEvent.startImageY - offsetY * factor;
     imagePosition.x = clickEvent.startImageX - offsetX * factor;
@@ -74,19 +74,22 @@ export default function initTouchHandler(editorContext: EditorContext) {
       imagePosition.x = 0;
     }
 
-    if (clickEvent.selectedImage.image.naturalWidth - imagePosition.width - imagePosition.x < 0) {
-      imagePosition.x = clickEvent.selectedImage.image.naturalWidth - imagePosition.width;
+    if (clickEvent.selectedImage.naturalWidth - imagePosition.width - imagePosition.x < 0) {
+      imagePosition.x = clickEvent.selectedImage.naturalWidth - imagePosition.width;
     }
-    if (clickEvent.selectedImage.image.naturalHeight - imagePosition.height - imagePosition.y < 0) {
-      imagePosition.y = clickEvent.selectedImage.image.naturalHeight - imagePosition.height;
+    if (clickEvent.selectedImage.naturalHeight - imagePosition.height - imagePosition.y < 0) {
+      imagePosition.y = clickEvent.selectedImage.naturalHeight - imagePosition.height;
     }
 
-    console.log("clickmove", x, y, offsetX, offsetY);
+    //console.log("clickmove", x, y, offsetX, offsetY);
   };
 
   const canvas = editorContext.canvas;
 
   canvas.addEventListener("mousemove", (e) => {
+    if (!clickEvent.isClicked) {
+      return;
+    }
     const rect = canvas.getBoundingClientRect();
     const canvasScaleFacor = editorContext.canvas.offsetWidth / editorContext.canvas.width;
     const x = (e.clientX - rect.left) / canvasScaleFacor;

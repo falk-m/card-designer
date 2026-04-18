@@ -21,7 +21,6 @@
 ## TODO
 
 - add cutting border
-- use canvas scale to use a higher resolution
 
 ## Readmap
 

@@ -13,6 +13,8 @@ const editor = (layout: Layout[]) => {
     ctx: (document.getElementById("canvas") as HTMLCanvasElement).getContext("2d") as CanvasRenderingContext2D,
     layout: layout[0],
     images: [],
+    withCuttingFrame: true,
+    loopDraw: true,
   };
 
   initTouchHandler(editorContext);

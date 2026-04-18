@@ -10,6 +10,7 @@ export interface Layout {
     dimensions: {
         width: number;
         height: number;
+        cuttingFrame: number;
     };
     type: 'portrait' | 'landscape';
     maxImages: number;
@@ -21,6 +22,8 @@ export interface EditorContext {
     ctx: CanvasRenderingContext2D;
     layout: Layout;
     images: EditorImage[];
+    withCuttingFrame: boolean;
+    loopDraw: boolean;
 }
 
 export interface InputImage {

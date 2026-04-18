@@ -9,7 +9,7 @@ interface ClickEvent {
   startImageY: number;
 }
 
-export default function createTouchHandler(editorContext: EditorContext) {
+export default function initTouchHandler(editorContext: EditorContext) {
   const clickEvent: ClickEvent = {
     isClicked: false,
     startX: 0,
@@ -24,12 +24,17 @@ export default function createTouchHandler(editorContext: EditorContext) {
     clickEvent.startX = x;
     clickEvent.startY = y;
 
-    for (const usedImages of editorContext.usedImages) {
-      const layoutPosition = usedImages.layoutPosition;
+    for (const editorImage of editorContext.images) {
+      const layoutPosition = editorImage.layoutPosition;
+      const imgagePosition = editorImage.imagePosition;
+
+      if(!layoutPosition || !imgagePosition) {
+        continue;
+      }
       if (x >= layoutPosition.x && x <= layoutPosition.x + layoutPosition.width && y >= layoutPosition.y && y <= layoutPosition.y + layoutPosition.height) {
-        clickEvent.selectedImage = usedImages;
-        clickEvent.startImageX = usedImages.imagePosition.x;
-        clickEvent.startImageY = usedImages.imagePosition.y;
+        clickEvent.selectedImage = editorImage;
+        clickEvent.startImageX = imgagePosition.x;
+        clickEvent.startImageY = imgagePosition.y;
         break;
       }
     }
@@ -49,7 +54,7 @@ export default function createTouchHandler(editorContext: EditorContext) {
   };
 
   const moveClickHandler = (x: number, y: number) => {
-    if (!clickEvent.isClicked || !clickEvent.selectedImage) {
+    if (!clickEvent.isClicked || !clickEvent.selectedImage || !clickEvent.selectedImage.layoutPosition || !clickEvent.selectedImage.imagePosition) {
       return;
     }
 

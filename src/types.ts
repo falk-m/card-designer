@@ -20,20 +20,22 @@ export interface EditorContext {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     layout: Layout;
-    uploadedImages: UploadImage[]
-    usedImages: EditorImage[];
+    images: EditorImage[];
 }
 
-export interface UploadImage {
+export interface InputImage {
+    src: string;
+    id: string;
+    meta?: any;
+}
+
+export interface EditorImage {
+    id: string;
+    meta?: any;
     image: HTMLImageElement;
     naturalHeight: number;
     naturalWidth: number;
     aspectRatio: number;
-    name: string;
-}
-
-export interface EditorImage {
-    image: UploadImage;
-    layoutPosition: Position;
-    imagePosition: Position;
+    layoutPosition?: Position;
+    imagePosition?: Position;
 }

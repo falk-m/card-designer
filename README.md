@@ -11,14 +11,15 @@
 
 ## api
 
-- `window.editor.exportImage(): Promise<File>`: return jpeg File object
-- `window.editor.loadImages(imagesSrcs: { src: string; name: string }[]) : Promise<void>`: load images from url or FileReader result
-- `window.editor.init()`: init editor with loaded images
+- `window.editor.exportImageFile(): Promise<File>`: return jpeg File object
+- `window.editor.loadImages(imagesSrcs: { id: string, src: string, meta?: {} }[]) : Promise<void>`: load images from url or FileReader result
+- `window.editor.removeImage(imageId: string)`: remove an image
+- `window.editor.getImages()`: get list of images from editor with position details
+- `window.editor.getLayout()`: get informations about the selected card Layout,
+- `window.editor.selectLayout(layoutId: string)`: select a layout
 
 ## TODO
 
-- click on empty area: open upload
-- click on image: show details, change image
 - add cutting border
 - use canvas scale to use a higher resolution
 

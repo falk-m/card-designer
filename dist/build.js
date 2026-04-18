@@ -4,14 +4,17 @@
   function createDrawFunction(editorContext) {
     const draw = () => {
       editorContext.ctx.clearRect(0, 0, editorContext.canvas.width, editorContext.canvas.height);
-      editorContext.usedImages.forEach((editorImage) => {
+      editorContext.images.forEach((editorImage) => {
         const pos = editorImage.layoutPosition;
         const imgPos = editorImage.imagePosition;
-        editorContext.ctx.drawImage(editorImage.image.image, imgPos.x, imgPos.y, imgPos.width, imgPos.height, pos.x, pos.y, pos.width, pos.height);
+        if (!pos || !imgPos) {
+          return;
+        }
+        editorContext.ctx.drawImage(editorImage.image, imgPos.x, imgPos.y, imgPos.width, imgPos.height, pos.x, pos.y, pos.width, pos.height);
       });
       requestAnimationFrame(draw);
     };
-    draw();
+    return draw;
   }
 
   // src/functions/loadImagesFunction.ts
@@ -23,11 +26,12 @@
         const img = new Image();
         img.onload = () => {
           images.push({
+            id: imagesSrc.id,
+            meta: imagesSrc.meta,
             image: img,
             naturalHeight: img.naturalHeight,
             naturalWidth: img.naturalWidth,
-            aspectRatio: img.naturalWidth / img.naturalHeight,
-            name: imagesSrc.name
+            aspectRatio: img.naturalWidth / img.naturalHeight
           });
           loadedCount++;
           if (loadedCount === imagesSrcs.length) {
@@ -35,15 +39,15 @@
           }
         };
         img.onerror = () => {
-          reject(new Error(`Failed to load image: ${imagesSrc.name}`));
+          reject(new Error(`Failed to load image: ${imagesSrc.id}`));
         };
         img.src = imagesSrc.src;
       }
     });
   };
 
-  // src/functions/createTouchHandler.ts
-  function createTouchHandler(editorContext) {
+  // src/functions/initTouchHandler.ts
+  function initTouchHandler(editorContext) {
     const clickEvent = {
       isClicked: false,
       startX: 0,
@@ -56,12 +60,16 @@
       clickEvent.isClicked = true;
       clickEvent.startX = x;
       clickEvent.startY = y;
-      for (const usedImages of editorContext.usedImages) {
-        const layoutPosition = usedImages.layoutPosition;
+      for (const editorImage of editorContext.images) {
+        const layoutPosition = editorImage.layoutPosition;
+        const imgagePosition = editorImage.imagePosition;
+        if (!layoutPosition || !imgagePosition) {
+          continue;
+        }
         if (x >= layoutPosition.x && x <= layoutPosition.x + layoutPosition.width && y >= layoutPosition.y && y <= layoutPosition.y + layoutPosition.height) {
-          clickEvent.selectedImage = usedImages;
-          clickEvent.startImageX = usedImages.imagePosition.x;
-          clickEvent.startImageY = usedImages.imagePosition.y;
+          clickEvent.selectedImage = editorImage;
+          clickEvent.startImageX = imgagePosition.x;
+          clickEvent.startImageY = imgagePosition.y;
           break;
         }
       }
@@ -76,7 +84,7 @@
       console.log("clickend", x, y);
     };
     const moveClickHandler = (x, y) => {
-      if (!clickEvent.isClicked || !clickEvent.selectedImage) {
+      if (!clickEvent.isClicked || !clickEvent.selectedImage || !clickEvent.selectedImage.layoutPosition || !clickEvent.selectedImage.imagePosition) {
         return;
       }
       const offsetX = x - clickEvent.startX;
@@ -246,9 +254,12 @@
     }
   ];
 
-  // src/functions/createScaleHandler.ts
+  // src/functions/initScaleHandler.ts
   var zoom = (editorImage, factor) => {
     const imgPos = editorImage.imagePosition;
+    if (!imgPos) {
+      return;
+    }
     const centerX = imgPos.x + imgPos.width / 2;
     const centerY = imgPos.y + imgPos.height / 2;
     const newWidth = imgPos.width * factor;
@@ -263,7 +274,7 @@
     imgPos.x = newX;
     imgPos.y = newY;
   };
-  function createScaleHandler(editorContext) {
+  function initScaleHandler(editorContext) {
     const canvas = editorContext.canvas;
     const scaleFactor = 1.01;
     const handleWheel = (event) => {
@@ -275,8 +286,11 @@
       const x = (clientX - rect.left) / canvasScaleFacor;
       const y = (clientY - rect.top) / canvasScaleFacor;
       const factor = zoomIn ? scaleFactor : 1 / scaleFactor;
-      editorContext.usedImages.forEach((editorImage) => {
+      editorContext.images.forEach((editorImage) => {
         const layoutPos = editorImage.layoutPosition;
+        if (!layoutPos) {
+          return;
+        }
         if (x >= layoutPos.x && x <= layoutPos.x + layoutPos.width && y >= layoutPos.y && y <= layoutPos.y + layoutPos.height) {
           zoom(editorImage, factor);
         }
@@ -296,8 +310,11 @@
         const x2 = (touch2.clientX - rect.left) / canvasScaleFacor;
         const y2 = (touch2.clientY - rect.top) / canvasScaleFacor;
         touchedImage = null;
-        editorContext.usedImages.forEach((editorImage) => {
+        editorContext.images.forEach((editorImage) => {
           const layoutPos = editorImage.layoutPosition;
+          if (!layoutPos) {
+            return;
+          }
           if (x1 >= layoutPos.x && x1 <= layoutPos.x + layoutPos.width && y1 >= layoutPos.y && y1 <= layoutPos.y + layoutPos.height || x2 >= layoutPos.x && x2 <= layoutPos.x + layoutPos.width && y2 >= layoutPos.y && y2 <= layoutPos.y + layoutPos.height) {
             touchedImage = editorImage;
           }
@@ -321,7 +338,7 @@
       const currentDistance = Math.hypot(x2 - x1, y2 - y1);
       const factor = currentDistance / lastTouchDistance;
       lastTouchDistance = currentDistance;
-      zoom(touchedImage, -1 * factor);
+      zoom(touchedImage, factor);
     };
     canvas.addEventListener("wheel", handleWheel);
     canvas.addEventListener("touchstart", handleTouchStart);
@@ -335,74 +352,9 @@
     };
   }
 
-  // src/index.ts
-  var editor = (layout) => {
-    const editorContext = {
-      canvas: document.getElementById("canvas"),
-      ctx: document.getElementById("canvas").getContext("2d"),
-      uploadedImages: [],
-      layout: layout[0],
-      usedImages: []
-    };
-    const loadImages = async (imagesSrcs) => {
-      const loadedImages = await loadImagesFunction(imagesSrcs);
-      editorContext.uploadedImages = editorContext.uploadedImages.concat(loadedImages);
-      console.log("Loaded images", { loadedImages, editorContext });
-    };
-    document.querySelectorAll("button[data-layout-btn]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const layoutId = btn.getAttribute("data-layout-btn");
-        if (!layoutId) {
-          throw new Error("Layout ID not found on button");
-        }
-        init(layoutId);
-      });
-    });
-    const init = (layoutId) => {
-      console.log("INIT", { layoutId });
-      const countImages = editorContext.uploadedImages.length;
-      let layoutToUse = null;
-      if (layoutId) {
-        layoutToUse = layout.find((l) => l.id === layoutId) ?? null;
-      }
-      layoutToUse = layoutToUse || layout.find((l) => l.maxImages >= countImages) || layout[0];
-      editorContext.layout = layoutToUse;
-      editorContext.canvas.width = layoutToUse.dimensions.width;
-      editorContext.canvas.height = layoutToUse.dimensions.height;
-      editorContext.ctx.clearRect(0, 0, editorContext.canvas.width, editorContext.canvas.height);
-      editorContext.usedImages = [];
-      editorContext.uploadedImages.forEach((img, index) => {
-        if (index < layoutToUse.positions.length) {
-          const pos = layoutToUse.positions[index];
-          const imagePositipon = { x: 0, y: 0, width: img.image.naturalWidth, height: img.image.naturalHeight };
-          const editorImage = {
-            image: img,
-            layoutPosition: pos,
-            imagePosition: imagePositipon
-          };
-          const layoutAspectRatio = pos.width / pos.height;
-          if (img.aspectRatio > layoutAspectRatio) {
-            console.log("Image is wider than layout position");
-            imagePositipon.height = editorImage.image.naturalHeight;
-            imagePositipon.width = editorImage.image.naturalHeight * layoutAspectRatio;
-            imagePositipon.x = (editorImage.image.naturalWidth - imagePositipon.width) / 2;
-            imagePositipon.y = 0;
-          } else {
-            console.log("Image is taller than layout position");
-            imagePositipon.width = editorImage.image.naturalWidth;
-            imagePositipon.height = editorImage.image.naturalWidth / layoutAspectRatio;
-            imagePositipon.width = editorImage.image.naturalWidth;
-            imagePositipon.x = 0;
-            imagePositipon.y = (editorImage.image.naturalHeight - imagePositipon.height) / 2;
-          }
-          editorContext.usedImages.push(editorImage);
-        }
-      });
-    };
-    createDrawFunction(editorContext);
-    createTouchHandler(editorContext);
-    createScaleHandler(editorContext);
-    const exportImage = async (filename = "card.jpg", quality = 0.92) => {
+  // src/functions/createExportImageFileFunction.ts
+  var createExportImageFileFunction = (editorContext) => {
+    return (filename, quality = 0.92) => {
       return new Promise((resolve, reject) => {
         editorContext.canvas.toBlob(
           (blob) => {
@@ -418,10 +370,89 @@
         );
       });
     };
+  };
+
+  // src/functions/createInitFunction.ts
+  var createInitFunction = (editorContext, layouts2) => {
+    return (layoutId) => {
+      console.log("INIT", { layoutId });
+      const countImages = editorContext.images.length;
+      let layoutToUse = null;
+      if (layoutId) {
+        layoutToUse = layouts2.find((l) => l.id === layoutId) ?? null;
+      }
+      layoutToUse = layoutToUse || layouts2.find((l) => l.maxImages >= countImages) || layouts2[0];
+      editorContext.layout = layoutToUse;
+      editorContext.canvas.width = layoutToUse.dimensions.width;
+      editorContext.canvas.height = layoutToUse.dimensions.height;
+      editorContext.ctx.clearRect(0, 0, editorContext.canvas.width, editorContext.canvas.height);
+      editorContext.images.forEach((editorImage, index) => {
+        if (index < layoutToUse.positions.length) {
+          const layoutPosition = layoutToUse.positions[index];
+          const imagePositipon = { x: 0, y: 0, width: editorImage.naturalWidth, height: editorImage.naturalHeight };
+          editorImage.layoutPosition = layoutPosition;
+          editorImage.imagePosition = imagePositipon;
+          const layoutAspectRatio = layoutPosition.width / layoutPosition.height;
+          if (editorImage.aspectRatio > layoutAspectRatio) {
+            console.log("Image is wider than layout position");
+            imagePositipon.height = editorImage.naturalHeight;
+            imagePositipon.width = editorImage.naturalHeight * layoutAspectRatio;
+            imagePositipon.x = (editorImage.naturalWidth - imagePositipon.width) / 2;
+            imagePositipon.y = 0;
+          } else {
+            console.log("Image is taller than layout position");
+            imagePositipon.width = editorImage.naturalWidth;
+            imagePositipon.height = editorImage.naturalWidth / layoutAspectRatio;
+            imagePositipon.width = editorImage.naturalWidth;
+            imagePositipon.x = 0;
+            imagePositipon.y = (editorImage.naturalHeight - imagePositipon.height) / 2;
+          }
+        } else {
+          editorImage.layoutPosition = void 0;
+          editorImage.imagePosition = void 0;
+        }
+      });
+    };
+  };
+
+  // src/index.ts
+  var editor = (layout) => {
+    const editorContext = {
+      canvas: document.getElementById("canvas"),
+      ctx: document.getElementById("canvas").getContext("2d"),
+      layout: layout[0],
+      images: []
+    };
+    initTouchHandler(editorContext);
+    initScaleHandler(editorContext);
+    const exportImageFile = createExportImageFileFunction(editorContext);
+    const init = createInitFunction(editorContext, layout);
+    const draw = createDrawFunction(editorContext);
+    const loadImages = async (imagesSrcs) => {
+      const loadedImages = await loadImagesFunction(imagesSrcs);
+      editorContext.images = editorContext.images.concat(loadedImages);
+      console.log("Loaded images", { loadedImages, editorContext });
+      init();
+    };
+    const removeImage = (imageId) => {
+      editorContext.images = editorContext.images.filter((img) => img.id !== imageId);
+      init();
+    };
+    draw();
+    const selectLayout = (layoutId) => {
+      const layoutToUse = layout.find((l) => l.id === layoutId);
+      if (!layoutToUse) {
+        throw new Error(`Layout with ID ${layoutId} not found`);
+      }
+      init(layoutId);
+    };
     return {
       loadImages,
-      init,
-      exportImage
+      removeImage,
+      exportImageFile,
+      selectLayout,
+      getImages: () => editorContext.images,
+      getLayout: () => editorContext.layout
     };
   };
   window.editor = editor(layouts);

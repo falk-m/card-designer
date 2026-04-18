@@ -2,6 +2,11 @@ import { EditorContext, EditorImage } from "../types";
 
 const zoom = (editorImage: EditorImage, factor: number) => {
   const imgPos = editorImage.imagePosition;
+
+  if(!imgPos) {
+    return;
+  }
+
   const centerX = imgPos.x + imgPos.width / 2;
   const centerY = imgPos.y + imgPos.height / 2;
 
@@ -20,7 +25,7 @@ const zoom = (editorImage: EditorImage, factor: number) => {
   imgPos.y = newY;
 };
 
-export function createScaleHandler(editorContext: EditorContext) {
+export function initScaleHandler(editorContext: EditorContext) {
   const canvas = editorContext.canvas;
   const scaleFactor = 1.01; // Adjust this value to control the zoom speed
 
@@ -37,8 +42,11 @@ export function createScaleHandler(editorContext: EditorContext) {
 
     const factor = zoomIn ? scaleFactor : 1 / scaleFactor;
 
-    editorContext.usedImages.forEach((editorImage) => {
+    editorContext.images.forEach((editorImage) => {
       const layoutPos = editorImage.layoutPosition;
+      if(!layoutPos) {
+        return;
+      }
       if (x >= layoutPos.x && x <= layoutPos.x + layoutPos.width && y >= layoutPos.y && y <= layoutPos.y + layoutPos.height) {
         zoom(editorImage, factor);
       }
@@ -62,8 +70,11 @@ export function createScaleHandler(editorContext: EditorContext) {
       const y2 = (touch2.clientY - rect.top) / canvasScaleFacor;
 
       touchedImage = null;
-      editorContext.usedImages.forEach((editorImage) => {
+      editorContext.images.forEach((editorImage) => {
         const layoutPos = editorImage.layoutPosition;
+        if(!layoutPos) {
+          return;
+        }
         if (
           (x1 >= layoutPos.x && x1 <= layoutPos.x + layoutPos.width && y1 >= layoutPos.y && y1 <= layoutPos.y + layoutPos.height) ||
           (x2 >= layoutPos.x && x2 <= layoutPos.x + layoutPos.width && y2 >= layoutPos.y && y2 <= layoutPos.y + layoutPos.height)
@@ -95,7 +106,7 @@ export function createScaleHandler(editorContext: EditorContext) {
     const factor = currentDistance / lastTouchDistance;
     lastTouchDistance = currentDistance;
 
-    zoom(touchedImage, -1 * factor);
+    zoom(touchedImage, factor);
   };
 
   canvas.addEventListener("wheel", handleWheel);

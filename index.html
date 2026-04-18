@@ -3,100 +3,164 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Test</title>
-    <link rel="stylesheet" href="./assets/styles.css" />
+    <link rel="stylesheet" href="./assets/styles.css?load=1" />
   </head>
   <body>
-    <div id="uploadContainer">
-      Erste ansicht zum hochladen von bildern. Es können mehrere bilder gleichzeitig hochgeladen werden.
+    <div style="margin-bottom: 2rem">
+      <h2>Upload or select your images</h2>
+      <div id="images">
+        <button onclick="addOrRemoveImageFromEditor(event)">
+          <img data-image-id="example1" src="./demoImages/IMG_20191215_152615.jpg" style="height: 50px; margin-right: 5px" />
+        </button>
+        <button onclick="addOrRemoveImageFromEditor(event)">
+          <img data-image-id="example2" src="./demoImages/IMG_20191227_122017.jpg" style="height: 50px; margin-right: 5px" />
+        </button>
+        <button onclick="addOrRemoveImageFromEditor(event)">
+          <img data-image-id="example3" src="./demoImages/IMG_20210504_100545.jpg" style="height: 50px; margin-right: 5px" />
+        </button>
+      </div>
 
-      <input type="file" id="imageInput" multiple accept="image/*" />
+      <div>
+        <input type="file" id="imageInput" multiple accept="image/*" />
+      </div>
     </div>
 
     <div id="editorContainer">
+      <h2>Arrange your images</h2>
       <canvas id="canvas" width="400" height="400" style="border: 1px solid #000000; max-width: 100%"></canvas>
 
       <div>
-        <button data-layout-btn="portrait1">
+        <h3>Choose a layout</h3>
+        <button data-layout-btn="portrait1" data-count-images="1">
           <img src="./assets/images/portrait1.png" style="height: 50px" />
         </button>
-        <button data-layout-btn="portrait2">
+        <button data-layout-btn="portrait2" data-count-images="2">
           <img src="./assets/images/portrait2.png" style="height: 50px" />
         </button>
-        <button data-layout-btn="portrait3">
+        <button data-layout-btn="portrait3" data-count-images="3">
           <img src="./assets/images/portrait3.png" style="height: 50px" />
         </button>
-        <button data-layout-btn="portrait4">
+        <button data-layout-btn="portrait4" data-count-images="4">
           <img src="./assets/images/portrait4.png" style="height: 50px" />
         </button>
-        <button data-layout-btn="landscape1">
+        <button data-layout-btn="landscape1" data-count-images="1">
           <img src="./assets/images/landscape1.png" style="height: 50px" />
         </button>
-        <button data-layout-btn="landscape2">
+        <button data-layout-btn="landscape2" data-count-images="2">
           <img src="./assets/images/landscape2.png" style="height: 50px" />
         </button>
-        <button data-layout-btn="landscape3">
+        <button data-layout-btn="landscape3" data-count-images="3">
           <img src="./assets/images/landscape3.png" style="height: 50px" />
         </button>
-        <button data-layout-btn="landscape4">
+        <button data-layout-btn="landscape4" data-count-images="4">
           <img src="./assets/images/landscape4.png" style="height: 50px" />
         </button>
       </div>
     </div>
-    <script src="./dist/build.js"></script>
+    <script src="./dist/build.js?load=1"></script>
     <script>
-      const dev = true;
+      const addOrRemoveImageFromEditor = (evt) => {
+        const imageId = evt.currentTarget.querySelector("img").getAttribute("data-image-id");
 
-      if (dev) {
-        document.getElementById("uploadContainer").style.display = "none";
-        document.getElementById("editorContainer").style.display = "block";
+        //check if button has css class "image-active" to determine if image is already in editor
+        const imageInEditor = window.editor.getImages().find((img) => img.id === imageId);
 
-        /* demo data for development*/
+        if (imageInEditor) {
+          window.editor.removeImage(imageInEditor.id);
+          filterLayoutButtons();
+          evt.currentTarget.classList.remove("image-active");
+        } else {
+          const image = new Image();
+          image.onload = function () {
+            window.editor.loadImages([{ src: image.src, id: imageId }]).then(() => {
+              filterLayoutButtons();
+            });
+          };
+          image.src = evt.currentTarget.querySelector("img").src;
+          evt.currentTarget.classList.add("image-active");
+        }
+      };
+
+      const uploadField = document.getElementById("imageInput");
+
+      uploadField.addEventListener("change", function (event) {
+        const imageSources = [];
+
+        for (const file of event.target.files) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const imageContainer = document.getElementById("images");
+            const button = document.createElement("button");
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            img.style.height = "50px";
+            img.setAttribute("data-image-id", file.name);
+            img.style.marginRight = "5px";
+            button.classList.add("image-active");
+            button.appendChild(img);
+            button.onclick = (event) => addOrRemoveImageFromEditor(event);
+            imageContainer.appendChild(button);
+
+            imageSources.push({
+              src: e.target.result,
+              id: file.name,
+            });
+
+            if (imageSources.length === event.target.files.length) {
+              window.editor.loadImages(imageSources).then(() => {
+                filterLayoutButtons();
+              });
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      const filterLayoutButtons = () => {
+        const layoutButtons = document.querySelectorAll("button[data-layout-btn]");
+        const imagesCount = window.editor.getImages().length;
+
+        layoutButtons.forEach((btn) => {
+          const requiredCount = parseInt(btn.getAttribute("data-count-images") || "0", 10);
+          if (imagesCount === requiredCount) {
+            btn.disabled = false;
+          } else {
+            btn.disabled = true;
+          }
+        });
+      };
+
+      document.querySelectorAll("button[data-layout-btn]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const layoutId = btn.getAttribute("data-layout-btn");
+          if (!layoutId) {
+            throw new Error("Layout ID not found on button");
+            }
+            window.editor.selectLayout(layoutId);
+        });
+      });
+
+      filterLayoutButtons();
+    </script>
+    <script>
+      /* demo data for development
         const demoImages = [
           {
             src: "./demoImages/IMG_20191215_152615.jpg",
-            name: "IMG_20191215_152615.jpg",
+            id: "IMG_20191215_152615.jpg",
           },
           {
             src: "./demoImages/IMG_20191227_122017.jpg",
-            name: "IMG_20191227_122017.jpg",
+            id: "IMG_20191227_122017.jpg",
           },
           {
             src: "./demoImages/IMG_20210504_100545.jpg",
-            name: "IMG_20210504_100545.jpg",
+            id: "IMG_20210504_100545.jpg",
           },
         ];
         window.editor.loadImages(demoImages).then(() => {
           window.editor.init();
-        });
-      } else {
-        document.getElementById("uploadContainer").style.display = "block";
-        document.getElementById("editorContainer").style.display = "none";
-
-        const uploadField = document.getElementById("imageInput");
-
-        uploadField.addEventListener("change", function (event) {
-          const imagesources = [];
-
-          for (const file of event.target.files) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              imagesources.push({
-                src: e.target.result,
-                name: file.name,
-              });
-
-              if (imagesources.length === event.target.files.length) {
-                window.editor.loadImages(imagesources).then(() => {
-                  document.getElementById("uploadContainer").style.display = "none";
-                  document.getElementById("editorContainer").style.display = "block";
-                  window.editor.init();
-                });
-              }
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      }
+        });*/
     </script>
   </body>
 </html>

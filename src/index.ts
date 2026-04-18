@@ -85,9 +85,28 @@ const editor = (layout: Layout[]) => {
   createTouchHandler(editorContext);
   createScaleHandler(editorContext);
 
+  const exportImage = async (filename: string = "card.jpg", quality: number = 0.92) => {
+    return new Promise<File>((resolve, reject) => {
+      editorContext.canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Failed to create blob"));
+            return;
+          }
+
+          const file = new File([blob], filename, { type: "image/jpeg" });
+          resolve(file);
+        },
+        "image/jpeg",
+        quality,
+      );
+    });
+  };
+
   return {
     loadImages,
     init,
+    exportImage,
   };
 };
 

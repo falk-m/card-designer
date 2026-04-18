@@ -1,0 +1,102 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <div id="uploadContainer">
+      Erste ansicht zum hochladen von bildern. Es können mehrere bilder gleichzeitig hochgeladen werden.
+
+      <input type="file" id="imageInput" multiple accept="image/*" />
+    </div>
+
+    <div id="editorContainer">
+      <canvas id="canvas" width="400" height="400" style="border: 1px solid #000000; max-width: 100%"></canvas>
+
+      <div>
+        <button data-layout-btn="portrait1">
+          <img src="./assets/images/portrait1.png" style="height: 50px" />
+        </button>
+        <button data-layout-btn="portrait2">
+          <img src="./assets/images/portrait2.png" style="height: 50px" />
+        </button>
+        <button data-layout-btn="portrait3">
+          <img src="./assets/images/portrait3.png" style="height: 50px" />
+        </button>
+        <button data-layout-btn="portrait4">
+          <img src="./assets/images/portrait4.png" style="height: 50px" />
+        </button>
+        <button data-layout-btn="landscape1">
+          <img src="./assets/images/landscape1.png" style="height: 50px" />
+        </button>
+        <button data-layout-btn="landscape2">
+          <img src="./assets/images/landscape2.png" style="height: 50px" />
+        </button>
+        <button data-layout-btn="landscape3">
+          <img src="./assets/images/landscape3.png" style="height: 50px" />
+        </button>
+        <button data-layout-btn="landscape4">
+          <img src="./assets/images/landscape4.png" style="height: 50px" />
+        </button>
+      </div>
+    </div>
+    <script src="./dist/build.js"></script>
+    <script>
+      const dev = true;
+
+      if (dev) {
+        document.getElementById("uploadContainer").style.display = "none";
+        document.getElementById("editorContainer").style.display = "block";
+
+        /* demo data for development*/
+        const demoImages = [
+          {
+            src: "./demoImages/IMG_20191215_152615.jpg",
+            name: "IMG_20191215_152615.jpg",
+          },
+          {
+            src: "./demoImages/IMG_20191227_122017.jpg",
+            name: "IMG_20191227_122017.jpg",
+          },
+          {
+            src: "./demoImages/IMG_20210504_100545.jpg",
+            name: "IMG_20210504_100545.jpg",
+          },
+        ];
+        window.editor.loadImages(demoImages).then(() => {
+          window.editor.init();
+        });
+      } else {
+        document.getElementById("uploadContainer").style.display = "block";
+        document.getElementById("editorContainer").style.display = "none";
+
+        const uploadField = document.getElementById("imageInput");
+
+        uploadField.addEventListener("change", function (event) {
+          const imagesources = [];
+
+          for (const file of event.target.files) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              imagesources.push({
+                src: e.target.result,
+                name: file.name,
+              });
+
+              if (imagesources.length === event.target.files.length) {
+                window.editor.loadImages(imagesources).then(() => {
+                  document.getElementById("uploadContainer").style.display = "none";
+                  document.getElementById("editorContainer").style.display = "block";
+                  window.editor.init();
+                });
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -50,6 +50,7 @@
         img.onerror = () => {
           reject(new Error(`Failed to load image: ${imagesSrc.id}`));
         };
+        img.crossOrigin = "Anonymous";
         img.src = imagesSrc.src;
       }
     });
@@ -459,7 +460,11 @@
       }
       init(layoutId);
     };
+    const reset = () => {
+      editorContext.images = [];
+    };
     return {
+      reset,
       loadImages,
       removeImage,
       exportImageFile,

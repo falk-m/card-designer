@@ -28,6 +28,7 @@ export const loadImagesFunction = (imagesSrcs: InputImage[]) => {
         reject(new Error(`Failed to load image: ${imagesSrc.id}`));
       };
 
+      img.crossOrigin = 'Anonymous';
       img.src = imagesSrc.src;
     }
   });

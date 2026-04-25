@@ -46,7 +46,12 @@ const editor = (layout: Layout[], canvas: HTMLCanvasElement) => {
     init(layoutId);
   }
 
+  const reset = () => {
+    editorContext.images = [];
+  };
+
   return {
+    reset,
     loadImages,
     removeImage,
     exportImageFile,

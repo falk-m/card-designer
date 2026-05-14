@@ -17,6 +17,8 @@
 - `editor.getImages()`: get list of images from editor with position details
 - `editor.getLayout()`: get informations about the selected card Layout,
 - `editor.selectLayout(layoutId: string)`: select a layout
+- `editor.getSvg(): string`: return svg string of the card
+- `editor.importSvg(): Promise<void>`: import card from svg, use only from editor exported svgs
 
 ## TODO
 

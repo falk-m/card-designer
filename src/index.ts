@@ -6,6 +6,7 @@ import { Layout, EditorContext, InputImage } from "./types";
 import { initScaleHandler } from "./functions/initScaleHandler";
 import { createExportImageFileFunction } from "./functions/createExportImageFileFunction";
 import { createInitFunction } from "./functions/createInitFunction";
+import { exportAsSVG, importFromSVG } from "./functions/SvgFunction";
 
 const editor = (layout: Layout[], canvas: HTMLCanvasElement) => {
   const editorContext: EditorContext = {
@@ -45,7 +46,7 @@ const editor = (layout: Layout[], canvas: HTMLCanvasElement) => {
       throw new Error(`Layout with ID ${layoutId} not found`);
     }
     init(layoutId);
-  }
+  };
 
   const reset = () => {
     editorContext.images = [];
@@ -59,6 +60,13 @@ const editor = (layout: Layout[], canvas: HTMLCanvasElement) => {
     selectLayout,
     getImages: () => editorContext.images,
     getLayout: () => editorContext.layout,
+    getSvg: () => {
+      return exportAsSVG(editorContext);
+    },
+    importSvg: async (svgString: string) => {
+      await importFromSVG(svgString, editorContext);
+      init();
+    }
   };
 };
 

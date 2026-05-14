@@ -59,6 +59,11 @@
         </button>
       </div>
     </div>
+
+    <div>
+      <button id="exportBtn">Export as SVG</button>
+      <button id="importBtn">Import from SVG</button>
+    </div>
     <script src="./dist/build.js?load=1"></script>
     <script>
       const editor = window.CollageEditor(document.getElementById("canvas"));
@@ -145,6 +150,40 @@
       });
 
       filterLayoutButtons();
+    </script>
+    <script>
+      document.getElementById("exportBtn").addEventListener("click", () => {
+        const svgString = editor.getSvg();
+        const blob = new Blob([svgString], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "collage.svg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      document.getElementById("importBtn").addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/svg+xml";
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const svgString = e.target.result;
+            editor.importSvg(svgString).catch((err) => {
+              alert("Error importing SVG: " + err.message);
+            }).then(() => {
+              filterLayoutButtons();
+            })
+          };
+          reader.readAsText(file);
+        };
+        input.click();
+      });
     </script>
     <script>
       /* demo data for development

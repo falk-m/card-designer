@@ -436,6 +436,82 @@
     };
   };
 
+  // src/functions/SvgFunction.ts
+  var SVG_TRANSFORMER_VERSION = "1.0";
+  function exportAsSVG(editorContext) {
+    const svgParts = [];
+    svgParts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${editorContext.layout.dimensions.width}" height="${editorContext.layout.dimensions.height}" data-svg-transformer-version="${SVG_TRANSFORMER_VERSION}">`);
+    editorContext.images.forEach((editorImage) => {
+      const pos = editorImage.layoutPosition;
+      const imgPos = editorImage.imagePosition;
+      if (!pos || !imgPos) {
+        return;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = imgPos.width;
+      canvas.height = imgPos.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        return;
+      }
+      ctx.drawImage(editorImage.image, imgPos.x, imgPos.y, imgPos.width, imgPos.height, 0, 0, imgPos.width, imgPos.height);
+      const imageDataURL = canvas.toDataURL("image/png");
+      svgParts.push(`<image href="${imageDataURL}" x="${pos.x}" y="${pos.y}" width="${pos.width}" height="${pos.height}" 
+      data-original-src="${editorImage.image.src}" />`);
+    });
+    svgParts.push(`</svg>`);
+    return svgParts.join("");
+  }
+  function importFromSVG(svgString, editorContext) {
+    return new Promise((resolve, reject) => {
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(svgString, "image/svg+xml");
+      const imageElements = svgDoc.querySelectorAll("image");
+      const version = svgDoc.documentElement.getAttribute("data-svg-transformer-version");
+      if (version && version != SVG_TRANSFORMER_VERSION) {
+        reject(new Error(`SVG version ${version} is not supported. Please update the application.`));
+        return;
+      }
+      if (imageElements.length === 0) {
+        reject(new Error("No images found in SVG"));
+        return;
+      }
+      editorContext.images = [];
+      const loadImagePromises = [];
+      imageElements.forEach((imageElement, index) => {
+        const src = imageElement.getAttribute("data-original-src");
+        const x = parseFloat(imageElement.getAttribute("x") || "0");
+        const y = parseFloat(imageElement.getAttribute("y") || "0");
+        const width = parseFloat(imageElement.getAttribute("width") || "0");
+        const height = parseFloat(imageElement.getAttribute("height") || "0");
+        if (!src) {
+          reject(new Error(`Image element at index ${index} is missing data-original-src attribute`));
+          return;
+        }
+        const img = new Image();
+        const loadPromise = new Promise((res, rej) => {
+          img.onload = () => {
+            editorContext.images.push({
+              id: `imported-${index}`,
+              image: img,
+              naturalHeight: img.naturalHeight,
+              naturalWidth: img.naturalWidth,
+              aspectRatio: img.naturalWidth / img.naturalHeight,
+              layoutPosition: { x, y, width, height },
+              imagePosition: { x: 0, y: 0, width: img.naturalWidth, height: img.naturalHeight }
+            });
+            res();
+          };
+          img.onerror = () => rej(new Error(`Failed to load image at index ${index}`));
+        });
+        img.crossOrigin = "Anonymous";
+        img.src = src;
+        loadImagePromises.push(loadPromise);
+      });
+      Promise.all(loadImagePromises).then(() => resolve()).catch(reject);
+    });
+  }
+
   // src/index.ts
   var editor = (layout, canvas) => {
     const editorContext = {
@@ -480,7 +556,14 @@
       exportImageFile,
       selectLayout,
       getImages: () => editorContext.images,
-      getLayout: () => editorContext.layout
+      getLayout: () => editorContext.layout,
+      getSvg: () => {
+        return exportAsSVG(editorContext);
+      },
+      importSvg: async (svgString) => {
+        await importFromSVG(svgString, editorContext);
+        init();
+      }
     };
   };
   window.CollageEditor = (canvas) => editor(layouts, canvas);

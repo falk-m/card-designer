@@ -13,11 +13,20 @@
         editorContext.ctx.drawImage(editorImage.image, imgPos.x, imgPos.y, imgPos.width, imgPos.height, pos.x, pos.y, pos.width, pos.height);
       });
       if (editorContext.withCuttingFrame) {
+        const frameWidth = editorContext.layout.dimensions.cuttingFrame;
         editorContext.ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-        editorContext.ctx.fillRect(0, 0, editorContext.layout.dimensions.width, editorContext.layout.dimensions.cuttingFrame);
-        editorContext.ctx.fillRect(0, editorContext.layout.dimensions.height - editorContext.layout.dimensions.cuttingFrame, editorContext.layout.dimensions.width, editorContext.layout.dimensions.cuttingFrame);
-        editorContext.ctx.fillRect(0, 0, editorContext.layout.dimensions.cuttingFrame, editorContext.layout.dimensions.height);
-        editorContext.ctx.fillRect(editorContext.layout.dimensions.width - editorContext.layout.dimensions.cuttingFrame, 0, editorContext.layout.dimensions.cuttingFrame, editorContext.layout.dimensions.height);
+        editorContext.ctx.fillRect(frameWidth, 0, editorContext.layout.dimensions.width - 2 * frameWidth, frameWidth);
+        editorContext.ctx.fillRect(frameWidth, editorContext.layout.dimensions.height - frameWidth, editorContext.layout.dimensions.width - 2 * frameWidth, frameWidth);
+        editorContext.ctx.fillRect(0, 0, frameWidth, editorContext.layout.dimensions.height);
+        editorContext.ctx.fillRect(editorContext.layout.dimensions.width - frameWidth, 0, frameWidth, editorContext.layout.dimensions.height);
+      }
+      if (editorContext.spaceBetweenImages) {
+        editorContext.ctx.fillStyle = "rgba(255, 255, 255, 1)";
+        const space = editorContext.spaceBetweenImages ?? 0;
+        editorContext.layout.positions.forEach((pos) => {
+          editorContext.ctx.fillRect(pos.x + pos.width, pos.y, space, pos.height);
+          editorContext.ctx.fillRect(pos.x, pos.y + pos.height, pos.width + space, space);
+        });
       }
       if (editorContext.loopDraw) {
         requestAnimationFrame(draw);
@@ -350,7 +359,7 @@
       const currentDistance = Math.hypot(x2 - x1, y2 - y1);
       const factor = currentDistance / lastTouchDistance;
       lastTouchDistance = currentDistance;
-      zoom(touchedImage, factor);
+      zoom(touchedImage, -1 * factor);
     };
     canvas.addEventListener("wheel", handleWheel);
     canvas.addEventListener("touchstart", handleTouchStart);
@@ -435,6 +444,7 @@
       layout: layout[0],
       images: [],
       withCuttingFrame: true,
+      spaceBetweenImages: 20,
       loopDraw: true
     };
     initTouchHandler(editorContext);

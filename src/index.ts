@@ -14,6 +14,7 @@ const editor = (layout: Layout[], canvas: HTMLCanvasElement) => {
     layout: layout[0],
     images: [],
     withCuttingFrame: true,
+    spaceBetweenImages: 20,
     loopDraw: true,
   };
 

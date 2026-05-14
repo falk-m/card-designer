@@ -23,6 +23,7 @@ export interface EditorContext {
     layout: Layout;
     images: EditorImage[];
     withCuttingFrame: boolean;
+    spaceBetweenImages?: number;
     loopDraw: boolean;
 }
 

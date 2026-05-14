@@ -106,7 +106,7 @@ export function initScaleHandler(editorContext: EditorContext) {
     const factor = currentDistance / lastTouchDistance;
     lastTouchDistance = currentDistance;
 
-    zoom(touchedImage, factor);
+    zoom(touchedImage, -1 * factor);
   };
 
   canvas.addEventListener("wheel", handleWheel);

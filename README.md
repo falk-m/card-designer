@@ -7,7 +7,7 @@
 ## development
 
 - `npm start` run Webserver under http://localhost:8000
-- `np run dev` start watcher to bunde js file on changes
+- `npm run dev` start watcher to bunde js file on changes
 
 ## api
 - `const editor = window.CollageEditor(document.getElementById("canvas"));` create a editor

@@ -459,6 +459,14 @@
       svgParts.push(`<image href="${imageDataURL}" x="${pos.x}" y="${pos.y}" width="${pos.width}" height="${pos.height}" 
       data-original-src="${editorImage.image.src}" />`);
     });
+    if (editorContext.spaceBetweenImages) {
+      const fillStyle = "rgba(255, 255, 255, 1)";
+      const space = editorContext.spaceBetweenImages ?? 0;
+      editorContext.layout.positions.forEach((pos) => {
+        svgParts.push(`<rect x="${pos.x + pos.width}" y="${pos.y}" width="${space}" height="${pos.height}" fill="${fillStyle}" />`);
+        svgParts.push(`<rect x="${pos.x}" y="${pos.y + pos.height}" width="${pos.width + space}" height="${space}" fill="${fillStyle}" />`);
+      });
+    }
     svgParts.push(`</svg>`);
     return svgParts.join("");
   }

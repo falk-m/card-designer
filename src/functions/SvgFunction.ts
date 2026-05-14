@@ -25,9 +25,11 @@ export function exportAsSVG(editorContext: EditorContext): string {
     ctx.drawImage(editorImage.image, imgPos.x, imgPos.y, imgPos.width, imgPos.height, 0, 0, imgPos.width, imgPos.height);
     const imageDataURL = canvas.toDataURL("image/png");
 
+    const originalSrc = encodeURIComponent(editorImage.image.src);
+
     //store original image src in SVG as data attribute, to allow for better quality when importing back, if the original image is still available at the src URL
     svgParts.push(`<image href="${imageDataURL}" x="${pos.x}" y="${pos.y}" width="${pos.width}" height="${pos.height}" 
-      data-original-src="${editorImage.image.src}" />`);
+      data-original-src="${originalSrc}" />`);
   });
 
   //draw space between images
@@ -66,7 +68,7 @@ export function importFromSVG(svgString: string, editorContext: EditorContext): 
     const loadImagePromises: Promise<void>[] = [];
 
     imageElements.forEach((imageElement, index) => {
-      const src = imageElement.getAttribute("data-original-src");
+      const src = decodeURIComponent(imageElement.getAttribute("data-original-src") || "");
       const x = parseFloat(imageElement.getAttribute("x") || "0");
       const y = parseFloat(imageElement.getAttribute("y") || "0");
       const width = parseFloat(imageElement.getAttribute("width") || "0");

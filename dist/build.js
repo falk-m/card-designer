@@ -456,8 +456,9 @@
       }
       ctx.drawImage(editorImage.image, imgPos.x, imgPos.y, imgPos.width, imgPos.height, 0, 0, imgPos.width, imgPos.height);
       const imageDataURL = canvas.toDataURL("image/png");
+      const originalSrc = encodeURIComponent(editorImage.image.src);
       svgParts.push(`<image href="${imageDataURL}" x="${pos.x}" y="${pos.y}" width="${pos.width}" height="${pos.height}" 
-      data-original-src="${editorImage.image.src}" />`);
+      data-original-src="${originalSrc}" />`);
     });
     if (editorContext.spaceBetweenImages) {
       const fillStyle = "rgba(255, 255, 255, 1)";
@@ -487,7 +488,7 @@
       editorContext.images = [];
       const loadImagePromises = [];
       imageElements.forEach((imageElement, index) => {
-        const src = imageElement.getAttribute("data-original-src");
+        const src = decodeURIComponent(imageElement.getAttribute("data-original-src") || "");
         const x = parseFloat(imageElement.getAttribute("x") || "0");
         const y = parseFloat(imageElement.getAttribute("y") || "0");
         const width = parseFloat(imageElement.getAttribute("width") || "0");
